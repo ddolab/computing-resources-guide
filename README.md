@@ -11,8 +11,8 @@ This documentation is designed to assist you in getting started with MSI by prov
     4.1 [Interactive Jobs](#interactive-jobs) \
     4.2 [Batch Jobs](#batch-jobs) \
     4.3 [Job Arrays](#job-arrays)
-5. [Parallelizing in Julia`](#parallelizing-in-julia)
-6. [Installing softwares on MSI](#installing-software-on-MSI) \
+5. [Parallel computing with Julia`](#parallelizing-in-julia)
+6. [Installing software on MSI](#installing-software-on-MSI) \
     6.1 [Julia](#julia) \
     6.2 [CPLEX](#cplex) \
     6.3 [BARON](#baron) \
@@ -20,37 +20,33 @@ This documentation is designed to assist you in getting started with MSI by prov
     6.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
 7. [Good practices for different solvers](#good-practices-for-different-solvers)
 8. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
-9. [Parallel computing with Julia](#parallel-computing-with-julia)
-10. [Common Julia syntax](#common-julia-syntax)
-11. [Common errors, work-arounds, and best practices](#common-errors)
+9. [Common errors, workarounds, and best practices](#common-errors)
 
 
 <a name="when-to-use-MSI"></a>
 ## When to use MSI?
 Consider using MSI over your PC in the following cases:
 
-- Solving optimization problems or simulations with large compuation time.
-- Running experiments requuring more memory access than available on your PC.
+- Solving optimization problems or simulations with large computation time.
+- Running experiments requiring more memory access than is available on your PC.
 - Running computational experiments with a huge number of instances.
-- Running parallel computations that require more cores than available on your PC.
+- Running parallel computations that require more cores than are available on your PC.
 
-MSI has the follwoing Linux computing clusters available for use:
+MSI has the following Linux computing clusters available for use:
 - Agate
 - Mangi
-- Mesabi [soon to be discontinued]
+- Mesabi [retiring soon]
 
-Each cluster has nodes with different architecture and more information on that can be found [here](https://www.msi.umn.edu/partitions).
+Each cluster has nodes with different architecture, and more information on that can be found [here](https://www.msi.umn.edu/partitions).
 
 <a name="connecting-to-MSI"></a>
 ## Connecting to MSI and file transfer
 
-To use MSI on **Windows** it is recommended to download the following software to your PC:
+To use MSI on **Windows**, it is recommended to download [PuTTY](https://www.msi.umn.edu/support/faq/how-do-i-configure-putty-connect-msi-unix-systems, which is an ssh client that will allow you to connect to MSI terminal. Instead, you can also use PowerShell.
 
-**PuTTY** - an SSH client that will allow you to open the MSI terminal - download [here](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html).
+In **Linux- and Mac-**based computers, do `ssh X500@partition-name.msi.umn.edu`. Replace `partition-name` with the partition you want to access (e.g. `agate`, `mangi`, `mesabi`).
 
-In **Linux and Mac** based computers, do `ssh X500@partition-name.msi.umn.edu`. Replace `partition-name` with the partition you want to access (e.g. `agate`, `mangi`, `mesabi`).
-
-Although you can use the terminal to move files to and from MSI, it is recommended to used a more user-friendly software like WinSCP (for Windows) or FileZilla (for Linux and Mac). More information on these can be found [here](https://www.msi.umn.edu/support/faq/how-do-i-transfer-data-between-mac-or-windows-computer-and-msi-unix-computers).
+Although you can use the terminal to move files to and from MSI, it is recommended to use softwares like WinSCP (for Windows) and FileZilla (for Linux and Mac) with user-friendly GUIs. More information on these can be found [here](https://www.msi.umn.edu/support/faq/how-do-i-transfer-data-between-mac-or-windows-computer-and-msi-unix-computers).
 
 If you are not on the University of Minnesota network, you will need to use the University's VPN to access MSI. More information on that can be found [here](https://it.umn.edu/services-technologies/virtual-private-network-vpn).
 
@@ -66,12 +62,12 @@ module avail gurobi
 ```
 To install newer versions of modules available on MSI, you need to contact the MSI [helpdesk](https://www.msi.umn.edu/content/helpdesk). Also, for globally installed modules that require a license (e.g. Gurobi), you need to contact the MSI staff to grant you the access.
 
-The locally installed softwares needs to be placed in a particular folder and the user needs to add that folder to their PATH variable. For example, if you have installed a software in the folder `~/software`, you can add the following line to your `.bashrc` file or directly to your job script.
+The locally installed softwares needs to be placed in a particular folder, and the user needs to add that folder to their `PATH` variable. For example, if you have installed a software in the folder `~/software`, you can add the following line to your `.bashrc` file or directly to your job script.
 ```
 export PATH=$PATH:~/software
 ```
 
-More on installing specific softwares on MSI can be found [here](#installing-software-on-MSI).
+More on installing specific software on MSI can be found [here](#installing-software-on-MSI).
 
 <a name="running-jobs"></a>
 ## Running Jobs 
