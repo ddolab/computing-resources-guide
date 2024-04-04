@@ -315,5 +315,6 @@ Please update if you encounter any issues with IPOPT.
     OpenBLAS blas_thread_init: RLIMIT_NPROC 16384 current, 16384 max
     ```
     This implies that the number of processes requested exceeds the max limit. Check the number of processes requested using `addprocs`. Also, removing the `JULIA_NUM_THREADS` command from job script would generally resolve the issue esp. if using `pmap` for parallelization as of version 1.5.0. 
+    
     > [!NOTE] 
     > This can have different implications depending on julia version. Always check the documentation for the version you are using.
