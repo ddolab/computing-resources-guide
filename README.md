@@ -262,6 +262,7 @@ HSL solver is an alternative linear solver that can be used in IPOPT. It has bet
 
 Finally, specify the linear solver that you want to use in IPOPT by defining the 'linear_solver' as "ma27". There are other solvers you can use in the HSL package, visit [here](http://www.hsl.rl.ac.uk/ipopt/). You can also install HSL solver by recompiling IPOPT, visit [here](https://coin-or.github.io/Ipopt/INSTALL.html) 
 
+<a name="issues-with-different-solvers"></a>
 ## Good practices/common issues with solvers
 ### BARON 
 
