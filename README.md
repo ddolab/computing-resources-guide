@@ -236,7 +236,8 @@ Replace the `/path/to/julia/bin` with the path to the `bin` folder of the julia 
 
 ### CPLEX
 
-> :caution: Please update if you think the following information is outdated.
+> [!CAUTION] 
+> Please update if you think the following information is outdated.
 
 To install CPLEX to your home folder, first download the installation file from the IBM academic initiative website. You want the version for Linux x86-64. If you fail to log into or download from the IBM website, make sure you close all the add blockers or switch browser. Once this file is downloaded, move it to your home directory on MSI. Then, open the MSI terminal and run the installation package using the code `./cplex_studio1210.linux-x86-64.bin` (make sure the version number is correct). Follow the prompts given to install CPLEX. Remember, to use CPLEX in Julia on MSI, you will also need to add the `JuMP` and `CPLEX` packages in Julia. To use CPLEX in Python, you will need to follow the last prompts in CPLEX installation to install it in python and add CPLEX package under your anaconda environment.
 
