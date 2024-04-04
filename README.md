@@ -20,10 +20,10 @@ This documentation is designed to assist you in getting started with MSI by prov
     7.4 [Gurobi](#gurobi) \
     7.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
 8. [Good practices/common issues with solvers](#issues-with-different-solvers) \
-    8.1 [BARON](#baron) \
-    8.2 [CPLEX](#cplex) \
-    8.3 [Gurobi](#gurobi) \
-    8.4 [IPOPT](#ipopt)
+    8.1 [BARON](#baron-1) \
+    8.2 [CPLEX](#cplex-1) \
+    8.3 [Gurobi](#gurobi-1) \
+    8.4 [IPOPT](#ipopt-1)
 9. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
 
 
@@ -268,6 +268,8 @@ Finally, specify the linear solver that you want to use in IPOPT by defining the
 
 <a name="issues-with-different-solvers"></a>
 ## Good practices/common issues with solvers
+
+<a name="baron-1"></a>
 ### BARON 
 
 - <u>**Ensuring options file is read when using parallel computing**</u>: The BARON package in Julia writes a file named `options` to the current active directory and deletes it upon completion of BARON's execution. However, a potential issue arises when multiple instances of BARON run in parallel: the `options` file may be closed while another parallel run attempts to read it. To address this, a simple solution is to assign a temporary folder for each parallel instance and set the active directory to this temporary location at the outset of the parallel code execution.
@@ -277,16 +279,17 @@ BARON has been observed to run significantly slower on the Mangi queue than on a
 
 - <u>**Explicitly specifying CPLEX path**</u>: On MSI, BARON usually cannot automatically locate the CPLEX installation and tends to default to using the open-source solver CLP. Therefore, if you have CPLEX installed, ensure to specify the installation directory using the appropriate option so that BARON can utilize it.
 
+<a name="cplex-1"></a>
 ### CPLEX
-
-
 - <u>**Node file management**</u>: <span style="color:red">
 [Might be outdated!]
 </span> -- CPLEX writes information about different nodes in the branch-and-bound tree to what are called node files. By default, CPLEX writes these to memory. However, memory is a precious commodity on MSI nodes, so it is better to write these node files to disc (and more specifically, to scratch space). To do so, add the following options to CPLEX when defining the model in Julia: `CPX_PARAM_NODEFILEIND=3` and `CPX_PARAM_WORKDIR=/scratch.local/myx500`.
 
+<a name="cplex-1"></a>
 ### Gurobi
 Please update if you encounter any issues with Gurobi.
 
+<a name="ipopt-1"></a>
 ### IPOPT
 Please update if you encounter any issues with IPOPT.
 
