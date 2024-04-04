@@ -210,7 +210,7 @@ This is the most basic (not always necessarily the most efficient) way to parall
 * As a general guideline, it's advisable to confirm that your function operates without errors for a single instance before attempting to parallel map it. Additionally, it's helpful to validate that your script functions correctly with a limited number of processors on your personal computer (or interactive MSI), before submitting it to MSI.
 
 <a name="installing-software-on-MSI"></a>
-## Installing softwares on MSI
+## Installing software on MSI
 
 ### Julia
 
@@ -254,7 +254,7 @@ To see all the available versions of Gurobi available on MSI, you can use the fo
 
 To request newer versions of Gurobi, submit a ticket to the MSI [helpdesk](https://www.msi.umn.edu/content/helpdesk).
 
-
+<a name="hsl"></a>
 ### HSL Package (Linear solvers for IPOPT)
 HSL solver is an alternative linear solver that can be used in IPOPT. It has better efficiency in some NLP systems compared to MUMPS. To use the HSL solver, you will have to first apply for the academic license and the download link of the Coin-HSL Full (Stable) version, visit [here](http://www.hsl.rl.ac.uk/ipopt/). Once you get the file, extract and upload it onto MSI. Find the "libcoinhsl.so" in the "lib" folder and rename it as "libhsl.so". Add the library path into your environment or add the following line into your pbs script":
 
@@ -286,6 +286,7 @@ Please update if you encounter any issues with Gurobi.
 ### IPOPT
 Please update if you encounter any issues with IPOPT.
 
+<a name="miscellaneous-troubleshooting-tips"></a>
 ## Miscellaneous troubleshooting tips
 
 - **ERROR message:** 
