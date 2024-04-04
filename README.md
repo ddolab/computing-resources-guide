@@ -11,16 +11,16 @@ This documentation is designed to assist you in getting started with MSI by prov
     4.1 [Interactive Jobs](#interactive-jobs) \
     4.2 [Batch Jobs](#batch-jobs) \
     4.3 [Job Arrays](#job-arrays)
-5. [Parallel computing with Julia`](#parallelizing-in-julia)
-6. [Installing software on MSI](#installing-software-on-MSI) \
-    6.1 [Julia](#julia) \
-    6.2 [CPLEX](#cplex) \
-    6.3 [BARON](#baron) \
-    6.4 [Gurobi](#gurobi) \
-    6.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
-7. [Good practices for different solvers](#good-practices-for-different-solvers)
+5. [Parallel computing with Julia](#parallelizing-in-julia)
+6. [Common errors and best practices while running parallel computations in Julia](#common-errors)
+7. [Installing software on MSI](#installing-software-on-MSI) \
+    7.1 [Julia](#julia) \
+    7.2 [CPLEX](#cplex) \
+    7.3 [BARON](#baron) \
+    7.4 [Gurobi](#gurobi) \
+    7.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
+7. [Good practices/common issues with solvers](#issues-with-different-solvers)
 8. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
-9. [Common errors, workarounds, and best practices](#common-errors)
 
 
 <a name="when-to-use-MSI"></a>
@@ -37,14 +37,14 @@ MSI has the following Linux computing clusters available for use:
 - Mangi
 - Mesabi [retiring soon]
 
-Each cluster has nodes with different architecture, and more information on that can be found [here](https://www.msi.umn.edu/partitions).
+Nodes on each cluster have different architecture, and more information on that can be found [here](https://www.msi.umn.edu/partitions).
 
 <a name="connecting-to-MSI"></a>
 ## Connecting to MSI and file transfer
 
-To use MSI on **Windows**, it is recommended to download [PuTTY](https://www.msi.umn.edu/support/faq/how-do-i-configure-putty-connect-msi-unix-systems, which is an ssh client that will allow you to connect to MSI terminal. Instead, you can also use PowerShell.
+To use MSI on **Windows**, it is recommended to download [PuTTY](https://www.msi.umn.edu/support/faq/how-do-i-configure-putty-connect-msi-unix-systems), which is an ssh client that will allow you to connect to MSI terminal. Instead, you can also use PowerShell.
 
-In **Linux- and Mac-**based computers, do `ssh X500@partition-name.msi.umn.edu`. Replace `partition-name` with the partition you want to access (e.g. `agate`, `mangi`, `mesabi`).
+In **Linux- and Mac**-based systems, run `ssh X500@cluster-name.msi.umn.edu` command in the terminal. Replace `cluster-name` with the cluster you want to access (e.g. `agate`, `mangi`, `mesabi`).
 
 Although you can use the terminal to move files to and from MSI, it is recommended to use softwares like WinSCP (for Windows) and FileZilla (for Linux and Mac) with user-friendly GUIs. More information on these can be found [here](https://www.msi.umn.edu/support/faq/how-do-i-transfer-data-between-mac-or-windows-computer-and-msi-unix-computers).
 
@@ -56,9 +56,9 @@ Modules are softwares that are either installed on the MSI globally (available t
 ```
 module load gurobi/10.0.1
 ```
-The above command loads Gurobi version 10.0.1. To see all the available versions of Gurobi available on MSI, you can use the following command:
+The above command loads Gurobi version 10.0.1. To see all versions of a module available on MSI, you can use the following command:
 ```
-module avail gurobi
+module avail module-name
 ```
 To install newer versions of modules available on MSI, you need to contact the MSI [helpdesk](https://www.msi.umn.edu/content/helpdesk). Also, for globally installed modules that require a license (e.g. Gurobi), you need to contact the MSI staff to grant you the access.
 
@@ -74,14 +74,13 @@ More on installing specific software on MSI can be found [here](#installing-soft
 
 <a name="interactive-jobs"></a>
 ### Interactive jobs
-Interactive sessions are useful for debugging and testing your code and maybe if you only have to run one particular instance of optimization/simulation problem, but you need to make sure the terminal is active all the time; hence not recommended for the last task (batch jobs are more suitable). To start an interactive session, you can use the following command:
+Interactive sessions are useful for debugging and testing your code. It can also be used in projects that only require running a single instance of an optimization or simulation problem. However, it's essential to ensure that the terminal remains active throughout. Therefore, it is not recommended for projects requiring multiple (often significant) runs of optimization/simulation model (see [batch jobs](#batch-jobs)). To initiate an interactive session, you can use the following command:
 
 To start an interactive session, you can use the following command:
 ```
 srun -N 1 --ntasks-per-node=4  --mem-per-cpu=1gb -t 1:00:00 -p interactive --pty bash
 ```
-
-More info on interactive jobs can be found [here](https://www.msi.umn.edu/content/interactive-queue-use-srun).
+Flag `-p` specifies the partition you want to use. More info on interactive jobs can be found [here](https://www.msi.umn.edu/content/interactive-queue-use-srun).
 
 <a name="batch-jobs"></a>
 ### Batch jobs
@@ -109,7 +108,7 @@ Replace `job.sh` with your slurm job script name. The `-p` flag is optional and 
 
 <a name="job-arrays"></a>
 ### Job arrays
-Job arrays are valuable for executing code with various parameters. While a for loop can serve this purpose, it may not always be practical, especially for computationally intensive tasks. This could result in the need to request nodes for extensive periods, which may exceed the node's usage limit. In such scenarios, job arrays prove beneficial as they enable running the same job multiple times with distinct parameters across different nodes, each assigned a unique job ID.
+Job arrays provide a convenient method for scheduling a job that involves executing a code repeatedly with varying parameter values. While a for loop can serve this purpose, it may not always be practical, especially for computationally intensive tasks. This could result in the need to request nodes for extensive periods (or memory), which may exceed the node's usage limit. In such scenarios, job arrays prove beneficial as they enable running the same job multiple times with distinct parameters across different nodes, each assigned a unique job ID.
 
 For example, suppsoe you have the following Julia script that solves an optimization problem: 
 
@@ -151,9 +150,9 @@ The above command will create 10 jobs, each with a different value of `a` rangin
 
 <a name="parallelizing-in-julia"></a>
 ## Parallelizing in Julia
-This differs from job arrays in a significant way. While job arrays involve running the same job on various nodes with distinct job IDs, here it's a single job with parallel execution of its components (some part of the code). For instance, in decomposition algorithms, this approach can facilitate parallelizing subproblems.
+The concept discussed in this section should not be confused with a job array. While job arrays facilitates running the same job on different nodes with unique job IDs, here we are trying to run a single job with parallel execution of its components, specifically certain parts of the code. For example, in decomposition algorithms, this approach can help in parallelizing subproblems.
 
-In Julia, we can utilize the `Distributed` package to parallelize our code (or part of it). This section is meant to be a brief overview of coding syntax. Consider a scenario where you have a Julia script that implements a decomposition algorithm, and you aim to parallelize its subproblems. The following code demonstrates how to achieve this:
+In Julia, the `Distributed` package can be leveraged to parallelize our code or specific sections of it. This section serves as a concise overview of the coding syntax involved. Let's consider a scenario where you wrote a Julia script implementing a decomposition algorithm, and your goal is to parallelize its subproblems. The following code illustrates how to accomplish this:
 
 ```
 using Distributed
@@ -186,9 +185,29 @@ Description of different components (functions/macros) used to setup parallel co
 
 * `@everywhere` - Makes a function/module available on all workers. Note that you can have blocks of code that is performed `@everywhere` by using `begin` and `end`.
 
-* `pmap(n->myfunction(n),range)` - Map the value `n` which takes all values in `range` onto `myfunction`. This is a parallel equivalent of running a for loop over `range` and evaluating the function in every iteration of the `for` loop. Any julia modules/`.jl` files/global variables required by the `myfunction` must be made available `@everywhere`.
+* `pmap(n->myfunction(n),range)` - Map the value `n` which takes all values in `range` onto `myfunction`. This is a parallel equivalent of running a for loop over `range` and evaluating the function in every iteration of the `for` loop. Any julia modules/`.jl` files/global variables required by `myfunction` must be made available `@everywhere`.
 
-This is the most basic way to parallelize your code. Parallelization is a very extensive topic and one should refer the [documentation](https://docs.julialang.org/en/v1/manual/parallel-computing) to learn more about it.
+This is the most basic (not always necessarily the most efficient) way to parallelize your code. Parallelization is a very extensive topic and one should refer the [documentation](https://docs.julialang.org/en/v1/manual/parallel-computing) to learn more about it.
+
+<a name="common-errors"></a>
+## Common errors and best practices while running parallel computations in Julia
+
+* The notorious `EOFError`, `Worker xx terminated`, or `ProcessExitedException`—this error can stem from various causes, often not immediately evident from the stack trace. Generally, it indicates that at least one worker or process crashed during the execution of parallelized code. Occasionally, the cause may be as simple as a bug within the code itself; therefore, it's advisable to initially run the function without parallelization to verify this isn't the case.
+
+    More frequently, this error arises due to memory exhaustion. To mitigate this, it's recommended to minimize the usage of `@everywhere` and request more cores than strictly required, thereby also acquiring additional memory. Requesting full nodes instead of partial ones, and consolidating all computations on a single node if feasible can also help in averting this error.
+
+* `Error: On worker x: var not defined`: This frequently occurs when one of your pmapped functions attempts to access a variable that hasn't been defined with `@everywhere`. Fortunately, the error message typically specifies the name of the undefined variable, making it easy to rectify.
+
+* When defining a random parameter across multiple processors, avoid using the syntax `@everywhere var=rand()`. This approach executes the `rand` function independently on each processor, resulting in distinct definitions of var on each processor. Instead, utilize the following approach:
+    ```
+    var=rand()
+    @eval @everywhere var=$var
+    ```
+    which performs the random generation once on main worker, and then makes that value avaialble `@everywhere`.
+
+* BARON isn't using the options I gave it - Julia's BARON package writes a file called `options` to the current active directory, and then deletes it when BARON is done running. The problem is, if you are running multiple instances of BARON in parallel, the options file may be closed while another parallel run is trying to read it. The easiest way to fix this is to define a temporary folder for each different parallel instance you are running, and to change the active directory to that temporary folder at the beginning of the parallel code.
+
+* As a general guideline, it's advisable to confirm that your function operates without errors for a single instance before attempting to parallel map it. Additionally, it's helpful to validate that your script functions correctly with a limited number of processors on your personal computer (or interactive MSI), before submitting it to MSI.
 
 <a name="installing-software-on-MSI"></a>
 ## Installing softwares on MSI
@@ -197,31 +216,33 @@ This is the most basic way to parallelize your code. Parallelization is a very e
 
 Some versions of Julia are already installed on MSI. To see which versions are available, you can use the following command: `module avail julia`. If you want to use one of the already installed version, simply run `module load julia/version-number`. If the version you want is not available, you can either submit a ticket to the MSI [helpdesk](https://www.msi.umn.edu/content/helpdesk) to request the version you want, or you can install it yourself as follows: 
 
-From you MSI's terminal, run the following command to download the Julia:
+From you MSI terminal, run the following command to download Julia:
 ```
 wget https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.2-linux-x86_64.tar.gz
 tar zxvf julia-1.10.2-linux-x86_64.tar.gz
 ```
 > :caution: Make sure to replace the version number with the version you want to install or see the command [here](https://julialang.org/downloads/platform/).
 
-To be able to use julia when submitting a job to MSI, you need to do two more things. First, you need to build a module for using julia. To do so, create a folder in your home directory called `Modules`. Then, create a folder within Modules called `Julia`. Then, within `Julia`, create a file whose name is the version of Julia you downloaded (e.g. 1.10.2). Inside this file, write the following line of code: 
-
-`#%Module`<br>
-`prepend-path PATH /path/to/julia/bin`
+To be able to use julia when submitting a job to MSI, you need to do two more things. First, you need to build a module for using julia. To do so, create a folder in your home directory called `Modules`. Then, create a folder within Modules called `Julia`. Then, within `Julia`, create a file whose name is the version of Julia you downloaded (e.g. `1.10.2`). Inside this file, write the following line of code: 
+```
+#%Module
+prepend-path PATH /path/to/julia/bin
+```
+Replace the `/path/to/julia/bin` with the path to the `bin` folder of the julia version you downloaded.
 
 ### CPLEX
 
 > :caution: Please update if you think the following information is outdated.
 
-To install CPLEX to your home folder, first download the installation file from the IBM academic initiative website. You want the version for Linux x86-64. If you fail to log into or download from the IBM website, make sure you close all the add blockers or change another browser. Once this file is downloaded, use WinSCP to move it to your home directory in MSI. Then, open the MSI terminal in PuTTY and run the installation package using the code `./cplex_studio1210.linux-x86-64.bin`. Follow the prompts given to install CPLEX. Remember, to use CPLEX in Julia on MSI, you will also need to add the JuMP and CPLEX packages in Julia. To use CPLEX in Python, you will need to follow the last prompts in CPLEX installation to install it in python and add CPLEX package under your anaconda environment.
+To install CPLEX to your home folder, first download the installation file from the IBM academic initiative website. You want the version for Linux x86-64. If you fail to log into or download from the IBM website, make sure you close all the add blockers or switch browser. Once this file is downloaded, move it to your home directory on MSI. Then, open the MSI terminal and run the installation package using the code `./cplex_studio1210.linux-x86-64.bin` (make sure the version number is correct). Follow the prompts given to install CPLEX. Remember, to use CPLEX in Julia on MSI, you will also need to add the `JuMP` and `CPLEX` packages in Julia. To use CPLEX in Python, you will need to follow the last prompts in CPLEX installation to install it in python and add CPLEX package under your anaconda environment.
 
 ### BARON
 
-To install BARON to your home folder, first download the zipped files [here](https://minlp.com/baron-downloads). Then, unzip the files and upload them to your home directory in MSI. Retrieve the BARON license file and place it in this folder. To use BARON in Julia on MSI, you will need to add the JuMP and BARON packages in Julia, and define the following environment variables:
-
-`export BARON_EXEC=/path/to/BARON/executable`<br>
-`export PATH=$PATH:/path/to/BARON/license/folder`
-
+To install BARON to your home folder, begin by downloading the zipped files from this [link](https://www.minlp.com/baron-downloads). Next, unzip the files and upload them to your home directory on MSI. Ensure to retrieve the BARON license file and drop it within this folder. To use BARON with Julia on MSI, it's necessary to add the `JuMP` and `BARON` packages in Julia and define the following environment variables (add these to the slurm job script):
+```
+export BARON_EXEC=/path/to/BARON/executable
+export PATH=$PATH:/path/to/BARON/license/folder
+```
 ### Gurobi
 Gurobi is installed globally on MSI. To use Gurobi, you can load the module using the following command:
 
@@ -233,6 +254,7 @@ To see all the available versions of Gurobi available on MSI, you can use the fo
 
 To request newer versions of Gurobi, submit a ticket to the MSI [helpdesk](https://www.msi.umn.edu/content/helpdesk).
 
+
 ### HSL Package (Linear solvers for IPOPT)
 HSL solver is an alternative linear solver that can be used in IPOPT. It has better efficiency in some NLP systems compared to MUMPS. To use the HSL solver, you will have to first apply for the academic license and the download link of the Coin-HSL Full (Stable) version, visit [here](http://www.hsl.rl.ac.uk/ipopt/). Once you get the file, extract and upload it onto MSI. Find the "libcoinhsl.so" in the "lib" folder and rename it as "libhsl.so". Add the library path into your environment or add the following line into your pbs script":
 
@@ -240,21 +262,22 @@ HSL solver is an alternative linear solver that can be used in IPOPT. It has bet
 
 Finally, specify the linear solver that you want to use in IPOPT by defining the 'linear_solver' as "ma27". There are other solvers you can use in the HSL package, visit [here](http://www.hsl.rl.ac.uk/ipopt/). You can also install HSL solver by recompiling IPOPT, visit [here](https://coin-or.github.io/Ipopt/INSTALL.html) 
 
-## Good practices for different solvers
+## Good practices/common issues with solvers
 ### BARON 
 
-Ensuring options file is read when using parallel computing: Julia's BARON package writes a file called `options` to the current active directory, and then deletes it when BARON is done running. The problem is, if you are running multiple instances of BARON in parallel, the options file may be closed while another parallel run is trying to read it. The easiest way to fix this is to define a temporary folder for each different parallel instance you are running, and to change the active directory to that temporary folder at the beginning of the parallel code.
+- <u>**Ensuring options file is read when using parallel computing**</u>: The BARON package in Julia writes a file named `options` to the current active directory and deletes it upon completion of BARON's execution. However, a potential issue arises when multiple instances of BARON run in parallel: the `options` file may be closed while another parallel run attempts to read it. To address this, a simple solution is to assign a temporary folder for each parallel instance and set the active directory to this temporary location at the outset of the parallel code execution.
 
+- <u>**BARON significantly slow on Mangi**</u>: **[Untested in recent times - probably outdated]** --
 BARON has been observed to run significantly slower on the Mangi queue than on a PC or on Mesabi. The current working theory on this is that something is using Intel's MKL library which Intel has intentionally made incompatible with AMD processors (used by Mangi). Adding the following line to your PBS script may help: `export MKL_DEBUG_CPU_TYPE=5 `.
 
-BARON on MSI is usually not able to locate CPLEX installation by default and tends to use the open-source solver clp for linear problems. Therefore, if you have CPLEX installed, make sure to specify the installation directory using the appropriate option so that BARON can find it.
+- <u>**Explicitly specifying CPLEX path**</u>: On MSI, BARON usually cannot automatically locate the CPLEX installation and tends to default to using the open-source solver CLP. Therefore, if you have CPLEX installed, ensure to specify the installation directory using the appropriate option so that BARON can utilize it.
 
 ### CPLEX
-<span style="color:red">
-[Might be outdated!]
-</span>
 
-Node file management: CPLEX writes information about different nodes in the branch-and-bound tree to what are called node files. By default, CPLEX writes these to memory. However, memory is a precious commodity on MSI nodes, so it is better to write these node files to disc (and more specifically, to scratch space). To do so, add the following options to CPLEX when defining the model in Julia: `CPX_PARAM_NODEFILEIND=3` and `CPX_PARAM_WORKDIR=/scratch.local/myx500`.
+
+- <u>**Node file management**</u>: <span style="color:red">
+[Might be outdated!]
+</span> -- CPLEX writes information about different nodes in the branch-and-bound tree to what are called node files. By default, CPLEX writes these to memory. However, memory is a precious commodity on MSI nodes, so it is better to write these node files to disc (and more specifically, to scratch space). To do so, add the following options to CPLEX when defining the model in Julia: `CPX_PARAM_NODEFILEIND=3` and `CPX_PARAM_WORKDIR=/scratch.local/myx500`.
 
 ### Gurobi
 Please update if you encounter any issues with Gurobi.
@@ -264,36 +287,20 @@ Please update if you encounter any issues with IPOPT.
 
 ## Miscellaneous troubleshooting tips
 
-**ERROR message:** 
+- **ERROR message:** 
+    
+    `ERROR: LoadError: LoadError: IOError: could not spawn /panfs/roc/groups/10/qizh/yourfile/baron-lin64/baron /tmp/jl_N8EEfQ/baron_problem.bar: permission denied (EACCES)`
 
-ERROR: LoadError: LoadError: IOError: could not spawn `/panfs/roc/groups/10/qizh/yourfile/baron-lin64/baron /tmp/jl_N8EEfQ/baron_problem.bar`: permission denied (EACCES)
-
-**Solution:**
-1. Check the right on the specific file: ls -l ~/baron-lin64/baron
-2. Make the file to be executable: chmod +x  ~/baron-lin64/baron
-3. Double check the right on the file. It should be -rwx------
+    **Potential solution:**
+    1. Check the rights on the specific file: `ls -l ~/baron-lin64/baron`
+    2. Make the file to be executable: `chmod +x  ~/baron-lin64/baron`
+    3. Double check the right on the file. It should be `-rwx------`
 
 
-**ERROR message:** 
+- **ERROR message:** 
 
-```
-OpenBLAS blas_thread_init: pthread_create failed for thread 1 of 8: Resource temporarily unavailable
-OpenBLAS blas_thread_init: RLIMIT_NPROC 16384 current, 16384 max
-```
-This implies that the number of processes requested exceeds the max limit. Check the number of processes requested using `addprocs`. Also, removing the `JULIA_NUM_THREADS` command from job script would generally resolve the issue esp. if using `pmap` for parallelization as of version 1.5.0. **__Caution__**: This can have different implications depending on julia version.
-
-<a name="common-errors"></a>
-### Common Errors, Work-arounds, and Best Practices
-
-* The dreaded `EOFError`, `Worker xx terminated`, or `ProcessExitedException` - This error can have many causes which are almost never apparent by looking at the stacktrace. In general, it typically means that at least one processor crashed in the running of parallelized code. Sometimes, this is as simple as a bug in that code - try running the function not parallelized first to ensure this is not the case. More commonly, this occurs because the job has run out of memory. Work arounds for this include defining as few things `@everywhere` as possible, and requesting more cores than you actually need for the computation (allowing you to also request additional memory). Using Mangi instead of Mesabi, requesting a full node instead of a partial one, and running all computations on a single node if possible can also help prevent this error. Lastly, adding additional processers using `addprocs` in the Julia code instead of `-p xx` in the PBS script seems to be more stable as of version 1.3.1.
-
-* `Error: On worker x: var not defined`: This happens most often when one of your pmapped functions is trying to access something that you didn't define `@everywhere`. It usually tells you the name of what it can't find so you can easily fix it.
-
-* Defining a random parameter on multiple processors - Never use the syntax `@everywhere var=rand()` - this will perform the rand function separately on every processor and as such, var will be defined differently on each processor. Instead use:<br>
-`var=rand()`<br>
-`@eval @everywhere var=$var`<br>
-which performs the random generation once on processor 1, and then defines var everywhere as its value on processor 1.
-
-* BARON isn't using the options I gave it - Julia's BARON package writes a file called `options` to the current active directory, and then deletes it when BARON is done running. The problem is, if you are running multiple instances of BARON in parallel, the options file may be closed while another parallel run is trying to read it. The easiest way to fix this is to define a temporary folder for each different parallel instance you are running, and to change the active directory to that temporary folder at the beginning of the parallel code.
-
-* In general, it is a good idea to ensure that your function runs without error for one instance before trying to pmap it, and it is a good idea to ensure your script runs correctly with a small number of processors on your PC, if possible, before trying to submit to MSI.
+    ```
+    OpenBLAS blas_thread_init: pthread_create failed for thread 1 of 8: Resource temporarily unavailable
+    OpenBLAS blas_thread_init: RLIMIT_NPROC 16384 current, 16384 max
+    ```
+    This implies that the number of processes requested exceeds the max limit. Check the number of processes requested using `addprocs`. Also, removing the `JULIA_NUM_THREADS` command from job script would generally resolve the issue esp. if using `pmap` for parallelization as of version 1.5.0. **__Caution__**: This can have different implications depending on julia version.
