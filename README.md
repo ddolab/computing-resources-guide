@@ -320,4 +320,4 @@ Please update if you encounter any issues with IPOPT.
     > **Note**
 
     
-    > This can have different implications depending on julia version. Always check the documentation for the version you are using.
+    > This can have different implications depending on Julia version. Always check the documentation for the version you are using.
