@@ -19,8 +19,12 @@ This documentation is designed to assist you in getting started with MSI by prov
     7.3 [BARON](#baron) \
     7.4 [Gurobi](#gurobi) \
     7.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
-7. [Good practices/common issues with solvers](#issues-with-different-solvers)
-8. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
+8. [Good practices/common issues with solvers](#issues-with-different-solvers) \
+    8.1 [BARON](#baron) \
+    8.2 [CPLEX](#cplex) \
+    8.3 [Gurobi](#gurobi) \
+    8.4 [IPOPT](#ipopt)
+9. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
 
 
 <a name="when-to-use-MSI"></a>
