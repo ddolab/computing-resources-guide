@@ -225,7 +225,8 @@ From you MSI terminal, run the following command to download Julia:
 wget https://julialang-s3.julialang.org/bin/linux/x64/1.10/julia-1.10.2-linux-x86_64.tar.gz
 tar zxvf julia-1.10.2-linux-x86_64.tar.gz
 ```
-> :caution: Make sure to replace the version number with the version you want to install or see the command [here](https://julialang.org/downloads/platform/).
+> [!CAUTION]
+> Make sure to replace the version number with the version you want to install or see the command [here](https://julialang.org/downloads/platform/).
 
 To be able to use julia when submitting a job to MSI, you need to do two more things. First, you need to build a module for using julia. To do so, create a folder in your home directory called `Modules`. Then, create a folder within Modules called `Julia`. Then, within `Julia`, create a file whose name is the version of Julia you downloaded (e.g. `1.10.2`). Inside this file, write the following line of code: 
 ```
@@ -313,4 +314,6 @@ Please update if you encounter any issues with IPOPT.
     OpenBLAS blas_thread_init: pthread_create failed for thread 1 of 8: Resource temporarily unavailable
     OpenBLAS blas_thread_init: RLIMIT_NPROC 16384 current, 16384 max
     ```
-    This implies that the number of processes requested exceeds the max limit. Check the number of processes requested using `addprocs`. Also, removing the `JULIA_NUM_THREADS` command from job script would generally resolve the issue esp. if using `pmap` for parallelization as of version 1.5.0. **__Caution__**: This can have different implications depending on julia version.
+    This implies that the number of processes requested exceeds the max limit. Check the number of processes requested using `addprocs`. Also, removing the `JULIA_NUM_THREADS` command from job script would generally resolve the issue esp. if using `pmap` for parallelization as of version 1.5.0. 
+    > [!WARNING] 
+    > This can have different implications depending on julia version.
