@@ -243,7 +243,7 @@ To install CPLEX to your home folder, first download the installation file from 
 
 ### BARON
 
-To install BARON to your home folder, begin by downloading the zipped files from this [link](https://www.minlp.com/baron-downloads). Next, unzip the files and upload them to your home directory on MSI. Ensure to retrieve the BARON license file and drop it within this folder. To use BARON with Julia on MSI, it's necessary to add the `JuMP` and `BARON` packages in Julia and define the following environment variables (add these to the slurm job script):
+To install BARON to your home folder, begin by downloading the zipped files from this [link](https://www.minlp.com/baron-downloads). Next, unzip the files and upload them to your home directory on MSI. Ensure to retrieve the BARON license file and drop it within this folder. To use BARON with Julia on MSI, it's necessary to add the `JuMP` and `BARON` packages in Julia and define the following environment variables (add these to the slurm job script) before loading BARON:
 ```
 export BARON_EXEC=/path/to/BARON/executable
 export PATH=$PATH:/path/to/BARON/license/folder
