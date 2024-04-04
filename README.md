@@ -56,7 +56,7 @@ If you are not on the University of Minnesota network, you will need to use the 
 
 <a name="modules"></a>
 ## What are modules on MSI?
-Modules are softwares that are either installed on the MSI globally (available to all users) or can be locally installed by the user on their own profile. List of softwares available on MSI can be found [here](https://www.msi.umn.edu/software). This list is not always upto date and if you are unsure check with the MSI staff or use `module avail software-name` command to see if the software is available. For example, Gurobi is pre-installed on MSI and can be loaded using the following command:
+Modules are softwares that are either installed on the MSI globally (available to all users) or can be locally installed by the user on their own profile. A list of software available on MSI can be found [here](https://www.msi.umn.edu/software). This list is not always up to date, and if you are unsure, check with the MSI staff or use the `module avail software-name` command to see if the software is available. For example, Gurobi is pre-installed on MSI and can be loaded using the following command:
 ```
 module load gurobi/10.0.1
 ```
@@ -64,12 +64,9 @@ The above command loads Gurobi version 10.0.1. To see all versions of a module a
 ```
 module avail module-name
 ```
-To install newer versions of modules available on MSI, you need to contact the MSI [helpdesk](https://www.msi.umn.edu/content/helpdesk). Also, for globally installed modules that require a license (e.g. Gurobi), you need to contact the MSI staff to grant you the access.
+To install newer versions of modules available on MSI, you need to contact the MSI [helpdesk](https://www.msi.umn.edu/content/helpdesk). Also, for globally installed modules that require a license (e.g., Gurobi), you need to contact the MSI staff to grant you access.
 
-The locally installed softwares needs to be placed in a particular folder, and the user needs to add that folder to their `PATH` variable. For example, if you have installed a software in the folder `~/software`, you can add the following line to your `.bashrc` file or directly to your job script.
-```
-export PATH=$PATH:~/software
-```
+Locally installed softwares needs to be placed in a particular folder, and the user needs to add that folder to their `PATH` variable (using the `export` command) either directly in the `.bashrc` file or in the Slurm job script (see [batch jobs](#batch-jobs)) before loading the software via `module load local-software`.
 
 More on installing specific software on MSI can be found [here](#installing-software-on-MSI).
 
@@ -99,6 +96,7 @@ Batch jobs should be used in most cases, esp. if you have to run a large number 
 #SBATCH --mail-type=FAIL  
 #SBATCH --mail-user=x500@umn.edu 
 module load gurobi/10.0.1
+export MODULEPATH=$MODULEPATH:~/module-files
 module load julia/1.9.3
 julia main.jl
 ```
@@ -141,6 +139,7 @@ You can create a job array to run the above script for different values of `a` b
 #SBATCH --mem=10g
 #SBATCH --tmp=10g
 module load gurobi/10.0.1
+export MODULEPATH=$MODULEPATH:~/module-files
 module load julia/1.9.3
 julia main.jl $SLURM_ARRAY_TASK_ID
 ```
@@ -154,7 +153,7 @@ The above command will create 10 jobs, each with a different value of `a` rangin
 
 <a name="parallelizing-in-julia"></a>
 ## Parallelizing in Julia
-The concept discussed in this section should not be confused with a job array. While job arrays facilitates running the same job on different nodes with unique job IDs, here we are trying to run a single job with parallel execution of its components, specifically certain parts of the code. For example, in decomposition algorithms, this approach can help in parallelizing subproblems.
+The concept discussed in this section should not be confused with a job array. While job arrays facilitate running the same job on different nodes with unique job IDs, here we are trying to run a single job with parallel execution of its components, specifically certain parts of the code. For example, in decomposition algorithms, this approach can help parallelize subproblems.
 
 In Julia, the `Distributed` package can be leveraged to parallelize our code or specific sections of it. This section serves as a concise overview of the coding syntax involved. Let's consider a scenario where you wrote a Julia script implementing a decomposition algorithm, and your goal is to parallelize its subproblems. The following code illustrates how to accomplish this:
 
@@ -179,7 +178,7 @@ end
 z = pmap(subproblem, 1:10; retry_delays = 3)
 ```
 
-The above code will run the `subproblem` in parallel on 10 different processes. Note that, it doesn't have to be the *_subproblems_* in the code, it can be any part of the code that can be parallelized.
+The above code will run the `subproblem` in parallel on 10 different processes. Note that it doesn't have to be the *_subproblems_* in the code; it can be any part of the code that can be parallelized.
 
 > :warning: While it is possible to generate more processes than the number of cores requested, it's generally discouraged. This is due to the processes competing for the same resources, often leading to performance degradation.
 
@@ -187,9 +186,9 @@ Description of different components (functions/macros) used to setup parallel co
 
 * `addprocs(n)` - Make available `n` Julia processes/workers. 
 
-* `@everywhere` - Makes a function/module available on all workers. Note that you can have blocks of code that is performed `@everywhere` by using `begin` and `end`.
+* `@everywhere` - Makes a function/module available on all workers. Note that you can have blocks of code that are performed `@everywhere` by using `begin` and `end`.
 
-* `pmap(n->myfunction(n),range)` - Map the value `n` which takes all values in `range` onto `myfunction`. This is a parallel equivalent of running a for loop over `range` and evaluating the function in every iteration of the `for` loop. Any julia modules/`.jl` files/global variables required by `myfunction` must be made available `@everywhere`.
+* `pmap(n->myfunction(n),range)` - Map the value `n`, which takes all values in `range` onto `myfunction`. This is a parallel equivalent of running a for loop over `range` and evaluating the function in every iteration of the `for` loop. Any julia modules/`.jl` files/global variables required by `myfunction` must be made available `@everywhere`.
 
 This is the most basic (not always necessarily the most efficient) way to parallelize your code. Parallelization is a very extensive topic and one should refer the [documentation](https://docs.julialang.org/en/v1/manual/parallel-computing) to learn more about it.
 
@@ -198,7 +197,7 @@ This is the most basic (not always necessarily the most efficient) way to parall
 
 * The notorious `EOFError`, `Worker xx terminated`, or `ProcessExitedException`—this error can stem from various causes, often not immediately evident from the stack trace. Generally, it indicates that at least one worker or process crashed during the execution of parallelized code. Occasionally, the cause may be as simple as a bug within the code itself; therefore, it's advisable to initially run the function without parallelization to verify this isn't the case.
 
-    More frequently, this error arises due to memory exhaustion. To mitigate this, it's recommended to minimize the usage of `@everywhere` and request more cores than strictly required, thereby also acquiring additional memory. Requesting full nodes instead of partial ones, and consolidating all computations on a single node if feasible can also help in averting this error.
+    This error arises more frequently due to memory exhaustion. To mitigate this, it's recommended to minimize the usage of `@everywhere` and request more cores than strictly required, thereby also acquiring additional memory. Requesting full nodes instead of partial ones and consolidating all computations on a single node, if feasible, can also help avert this error.
 
 * `Error: On worker x: var not defined`: This frequently occurs when one of your pmapped functions attempts to access a variable that hasn't been defined with `@everywhere`. Fortunately, the error message typically specifies the name of the undefined variable, making it easy to rectify.
 
@@ -209,9 +208,9 @@ This is the most basic (not always necessarily the most efficient) way to parall
     ```
     which performs the random generation once on main worker, and then makes that value avaialble `@everywhere`.
 
-* BARON isn't using the options I gave it - Julia's BARON package writes a file called `options` to the current active directory, and then deletes it when BARON is done running. The problem is, if you are running multiple instances of BARON in parallel, the options file may be closed while another parallel run is trying to read it. The easiest way to fix this is to define a temporary folder for each different parallel instance you are running, and to change the active directory to that temporary folder at the beginning of the parallel code.
+* BARON isn't using the options I gave it - Julia's BARON package writes a file called `options` to the current active directory and then deletes it when BARON is done running. The problem is that if you are running multiple instances of BARON in parallel, the `options` file may be closed while another parallel run is trying to read it. The easiest way to fix this is to define a temporary folder for each different parallel instance you are running and to change the active directory to that temporary folder at the beginning of the parallel code.
 
-* As a general guideline, it's advisable to confirm that your function operates without errors for a single instance before attempting to parallel map it. Additionally, it's helpful to validate that your script functions correctly with a limited number of processors on your personal computer (or interactive MSI), before submitting it to MSI.
+* As a general guideline, it's advisable to confirm that your function operates without errors for a single instance before attempting to parallel map it. Additionally, it's helpful to validate that your script functions correctly with a limited number of processors on your personal computer (or interactive MSI) before submitting it to MSI.
 
 <a name="installing-software-on-MSI"></a>
 ## Installing software on MSI
@@ -233,7 +232,7 @@ To be able to use julia when submitting a job to MSI, you need to do two more th
 #%Module
 prepend-path PATH /path/to/julia/bin
 ```
-Replace the `/path/to/julia/bin` with the path to the `bin` folder of the julia version you downloaded.
+Replace the `/path/to/julia/bin` (e.g., `~/software/julia-1.10.2/bin`)  with the path to the `bin` folder of the julia version you downloaded.
 
 ### CPLEX
 
@@ -300,7 +299,9 @@ Please update if you encounter any issues with IPOPT.
 
 - **ERROR message:** 
     
-    `ERROR: LoadError: LoadError: IOError: could not spawn /panfs/roc/groups/10/qizh/yourfile/baron-lin64/baron /tmp/jl_N8EEfQ/baron_problem.bar: permission denied (EACCES)`
+    ```
+    ERROR: LoadError: LoadError: IOError: could not spawn /panfs/roc/groups/10/qizh/yourfile/baron-lin64/baron/tmp/jl_N8EEfQ/baron_problem.bar: permission denied (EACCES)
+    ```
 
     **Potential solution:**
     1. Check the rights on the specific file: `ls -l ~/baron-lin64/baron`
