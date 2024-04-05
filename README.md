@@ -212,6 +212,14 @@ This is the most basic (not always necessarily the most efficient) way to parall
 
 * As a general guideline, it's advisable to confirm that your function operates without errors for a single instance before attempting to parallel map it. Additionally, it's helpful to validate that your script functions correctly with a limited number of processors on your personal computer (or interactive MSI) before submitting it to MSI.
 
+* If you wish to transfer a large amount of data from the main process to workers, one efficient option is to use a [caching pool](https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.CachingPool)
+  ```
+  results=let problem_data= (A,B,c)
+                    wp = CachingPool(workers())
+                    pmap(scenario_number->do_subproblem(scenario_number,problem_data,other_arguments),wp,set_of_scenarios; retry_delays= ExponentialBackOff(n = 3)) 
+                end
+  ```
+  
 <a name="installing-software-on-MSI"></a>
 ## Installing software on MSI
 
@@ -286,10 +294,17 @@ BARON has been observed to run significantly slower on the Mangi queue than on a
 [Might be outdated!]
 </span> -- CPLEX writes information about different nodes in the branch-and-bound tree to what are called node files. By default, CPLEX writes these to memory. However, memory is a precious commodity on MSI nodes, so it is better to write these node files to disc (and more specifically, to scratch space). To do so, add the following options to CPLEX when defining the model in Julia: `CPX_PARAM_NODEFILEIND=3` and `CPX_PARAM_WORKDIR=/scratch.local/myx500`.
 
-<a name="cplex-1"></a>
+<a name="gurobi-1"></a>
 ### Gurobi
-Please update if you encounter any issues with Gurobi.
-
+- <u>**Suppressing Gurobi output from workers**</u>: When running parallelized Gurobi solves on an interactive job, each worker will print solver information to the console unless the output is suppressed. This can make the console difficult to follow. To suppress the output properly, define a Gurobi environment on each worker and set "OutputFlag" to 0 in each environment:
+  ```
+  @everywhere const env = Gurobi.Env()
+  @everywhere Gurobi.GRBsetintparam(env, "OutputFlag", 0)
+  ```
+  Then, when you define a model on a worker, use the predefined environment:
+  ```
+  model = direct_model(optimizer_with_attributes(() -> Gurobi.Optimizer(env)))
+  ```
 <a name="ipopt-1"></a>
 ### IPOPT
 Please update if you encounter any issues with IPOPT.
@@ -321,3 +336,15 @@ Please update if you encounter any issues with IPOPT.
 
     
     > This can have different implications depending on Julia version. Always check the documentation for the version you are using.
+
+- **Memory leaks:** When using Gurobi callbacks, JuMP, Distributed.jl, and MSI together, strange behavior regarding memory has been observed (and the issue is not well documented online). If you seem to run out of memory when using these tools together, even when you make small models and use few workers, it is recommended that you place the following lines throughout your code:
+```
+#memory related
+    GC.gc(true)
+    GC.safepoint()
+    try
+    ccall(:malloc_trim, Cvoid, (Cint,), 0)
+    catch
+    end
+```
+The code will run garbage collection in Julia and then force Linux (if it is being used) to free the memory no longer used by Julia. This should happen without the code (as it does in Windows), and there is a good chance this will be fixed in the future.
