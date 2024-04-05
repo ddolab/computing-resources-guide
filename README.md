@@ -151,6 +151,7 @@ sbatch -p amdsmall --array=1-10 job.sh
 
 The above command will create 10 jobs, each with a different value of `a` ranging from 1 to 10.
 
+The status of submitted jobs can be tracked in a variety of ways. One user-friendly way to do so is to use the interactive resource [Open OnDemand](https://ondemand.msi.umn.edu/).
 <a name="parallelizing-in-julia"></a>
 ## Parallelizing in Julia
 The concept discussed in this section should not be confused with a job array. While job arrays facilitate running the same job on different nodes with unique job IDs, here we are trying to run a single job with parallel execution of its components, specifically certain parts of the code. For example, in decomposition algorithms, this approach can help parallelize subproblems.
