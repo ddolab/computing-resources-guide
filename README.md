@@ -5,26 +5,29 @@ This documentation is designed to assist you in getting started with MSI by prov
 ## Table of Contents
 
 1. [When to use MSI?](#when-to-use-MSI)
-2. [Connecting to MSI and file transfer](#connecting-to-MSI)
-3. [What are modules on MSI?](#modules)
-4. [Running jobs](#running-jobs) \
+2. [Connecting to MSI and file transfer](#connecting-to-MSI) \
+    2.1 [Using terminal and file transfer software](#connecting-to-MSI-terminal)\
+    2.2 [Using VS code](#connecting-to-MSI-vscode)
+4. [What are modules on MSI?](#modules)
+5. [Running jobs](#running-jobs) \
     4.1 [Interactive Jobs](#interactive-jobs) \
     4.2 [Batch Jobs](#batch-jobs) \
     4.3 [Job Arrays](#job-arrays)
-5. [Parallel computing with Julia](#parallelizing-in-julia)
-6. [Common errors and best practices while running parallel computations in Julia](#common-errors)
-7. [Installing software on MSI](#installing-software-on-MSI) \
+6. [Parallel computing with Julia](#parallelizing-in-julia)
+7. [Common errors and best practices while running parallel computations in Julia](#common-errors)
+8. [Parallel computing with Python](#parallelizing-in-python)
+9. [Installing software on MSI](#installing-software-on-MSI) \
     7.1 [Julia](#julia) \
     7.2 [CPLEX](#cplex) \
     7.3 [BARON](#baron) \
     7.4 [Gurobi](#gurobi) \
     7.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
-8. [Good practices/common issues with solvers](#issues-with-different-solvers) \
+10. [Good practices/common issues with solvers](#issues-with-different-solvers) \
     8.1 [BARON](#baron-1) \
     8.2 [CPLEX](#cplex-1) \
     8.3 [Gurobi](#gurobi-1) \
     8.4 [IPOPT](#ipopt-1)
-9. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
+11. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
 
 
 <a name="when-to-use-MSI"></a>
@@ -45,7 +48,8 @@ Nodes on each cluster have different architecture, and more information on that 
 
 <a name="connecting-to-MSI"></a>
 ## Connecting to MSI and file transfer
-
+<a name="connecting-to-MSI-terminal"></a>
+### Using terminal and file transfer software
 To use MSI on **Windows**, it is recommended to download [PuTTY](https://www.msi.umn.edu/support/faq/how-do-i-configure-putty-connect-msi-unix-systems), which is an ssh client that will allow you to connect to MSI terminal. Instead, you can also use PowerShell.
 
 In **Linux- and Mac**-based systems, run `ssh X500@cluster-name.msi.umn.edu` command in the terminal. Replace `cluster-name` with the cluster you want to access (e.g. `agate`, `mangi`, `mesabi`).
@@ -53,6 +57,13 @@ In **Linux- and Mac**-based systems, run `ssh X500@cluster-name.msi.umn.edu` com
 Although you can use the terminal to move files to and from MSI, it is recommended to use softwares like WinSCP (for Windows) and FileZilla (for Linux and Mac) with user-friendly GUIs. More information on these can be found [here](https://www.msi.umn.edu/support/faq/how-do-i-transfer-data-between-mac-or-windows-computer-and-msi-unix-computers).
 
 If you are not on the University of Minnesota network, you will need to use the University's VPN to access MSI. More information on that can be found [here](https://it.umn.edu/services-technologies/virtual-private-network-vpn).
+
+<a name="connecting-to-MSI-vscode"></a>
+### Using VS code
+If using VS code as the code editor, you can connect VS code to MSI by following this YouTube video [here](https://www.youtube.com/watch?v=MDEPVs5uSp8). Follow the video instructions and download the required extensions. When setting up the ssh path, use `ssh X500@cluster-name.msi.umn.edu`. 
+
+You can transfer files and folders by dragging them between your local and MSI workspace, but VS Code generates one prompt for each file or folder download. In this case, you might find WinSCP or FileZilla more convenient.
+
 
 <a name="modules"></a>
 ## What are modules on MSI?
@@ -82,6 +93,8 @@ To start an interactive session, you can use the following command:
 srun -N 1 --ntasks-per-node=4  --mem-per-cpu=1gb -t 1:00:00 -p interactive --pty bash
 ```
 Flag `-p` specifies the partition you want to use. More info on interactive jobs can be found [here](https://www.msi.umn.edu/content/interactive-queue-use-srun).
+
+If you have access to different groups' MSI quotas, use the flag `-A groupID` to specify the group you want the resources to be charged for. For example, `-A qizh`.
 
 <a name="batch-jobs"></a>
 ### Batch jobs
@@ -152,6 +165,9 @@ sbatch -p amdsmall --array=1-10 job.sh
 The above command will create 10 jobs, each with a different value of `a` ranging from 1 to 10.
 
 The status of submitted jobs can be tracked in a variety of ways. One user-friendly way to do so is to use the interactive resource [Open OnDemand](https://ondemand.msi.umn.edu/).
+
+> :warning: Be aware of the resources you allocate. The more you request, the longer the waiting time is.
+
 <a name="parallelizing-in-julia"></a>
 ## Parallelizing in Julia
 The concept discussed in this section should not be confused with a job array. While job arrays facilitate running the same job on different nodes with unique job IDs, here we are trying to run a single job with parallel execution of its components, specifically certain parts of the code. For example, in decomposition algorithms, this approach can help parallelize subproblems.
@@ -220,7 +236,47 @@ This is the most basic (not always necessarily the most efficient) way to parall
                     pmap(scenario_number->do_subproblem(scenario_number,problem_data,other_arguments),wp,set_of_scenarios; retry_delays= ExponentialBackOff(n = 3)) 
                 end
   ```
-  
+
+<a name="parallelizing-in-python"></a>
+## Parallelizing in Python
+
+In Python, you can also parallelize your code using the `multiprocessing` package. Using the same decomposition example in the [Julia-Distributed](#parallelizing-in-julia) tutorial, the following code shows how it works in Python:
+
+```
+import multiprocessing as mp
+
+#= ...
+  some code before solving subproblems
+  ... =#
+
+def subproblem(n)
+    # solves some optimization problem
+    return n^2
+
+#= ...
+  some code after solving subproblems
+  ... =#
+
+p = mp.Pool(10)
+z = map(subproblem, range(1,10))
+
+p.close()
+p.join()
+
+```
+
+Description of different components (functions/macros) used to set parallel computing:
+
+* `Pool(n)` - Make available `n` Python processes/workers. 
+
+* `map(n->myfunction(n), range)` - Same as the `pmap` function in Julia. Map the value `n`, which takes all values in `range` onto `myfunction`. This is a parallel equivalent of running a for loop over `range` and evaluating the function in every iteration of the `for` loop.
+
+* `close()` - Terminate the processes/workers and release the resources once they are finished.
+
+* `join()` - Wait for all the processes/workers to finish.
+
+This is a basic implementation, please refer to the package documentation [here](https://docs.python.org/3/library/multiprocessing.html) for more advanced usage. 
+
 <a name="installing-software-on-MSI"></a>
 ## Installing software on MSI
 
