@@ -8,26 +8,26 @@ This documentation is designed to assist you in getting started with MSI by prov
 2. [Connecting to MSI and file transfer](#connecting-to-MSI) \
     2.1 [Using terminal and file transfer software](#connecting-to-MSI-terminal)\
     2.2 [Using VS code](#connecting-to-MSI-vscode)
-4. [What are modules on MSI?](#modules)
-5. [Running jobs](#running-jobs) \
+3. [What are modules on MSI?](#modules)
+4. [Running jobs](#running-jobs) \
     4.1 [Interactive Jobs](#interactive-jobs) \
     4.2 [Batch Jobs](#batch-jobs) \
     4.3 [Job Arrays](#job-arrays)
-6. [Parallel computing with Julia](#parallelizing-in-julia)
-7. [Common errors and best practices while running parallel computations in Julia](#common-errors)
-8. [Parallel computing with Python](#parallelizing-in-python)
-9. [Installing software on MSI](#installing-software-on-MSI) \
-    7.1 [Julia](#julia) \
-    7.2 [CPLEX](#cplex) \
-    7.3 [BARON](#baron) \
-    7.4 [Gurobi](#gurobi) \
-    7.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
-10. [Good practices/common issues with solvers](#issues-with-different-solvers) \
-    8.1 [BARON](#baron-1) \
-    8.2 [CPLEX](#cplex-1) \
-    8.3 [Gurobi](#gurobi-1) \
-    8.4 [IPOPT](#ipopt-1)
-11. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
+5. [Parallel computing with Julia](#parallelizing-in-julia)
+6. [Common errors and best practices while running parallel computations in Julia](#common-errors)
+7. [Parallel computing with Python](#parallelizing-in-python)
+8. [Installing software on MSI](#installing-software-on-MSI) \
+    8.1 [Julia](#julia) \
+    8.2 [CPLEX](#cplex) \
+    8.3 [BARON](#baron) \
+    8.4 [Gurobi](#gurobi) \
+    8.5 [HSL Package (Linear solvers for IPOPT)](#hsl)
+9. [Good practices/common issues with solvers](#issues-with-different-solvers) \
+    9.1 [BARON](#baron-1) \
+    9.2 [CPLEX](#cplex-1) \
+    9.3 [Gurobi](#gurobi-1) \
+    9.4 [IPOPT](#ipopt-1)
+10. [Miscellaneous troubleshooting tips](#miscellaneous-troubleshooting-tips)
 
 
 <a name="when-to-use-MSI"></a>
