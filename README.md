@@ -1,4 +1,5 @@
 # Getting Started with MSI
+This guide is intended for members of the Decision Discovery and Optimization Lab but has been made public for anyone who might find it useful.
 
 This documentation is designed to assist you in getting started with MSI by providing guidance on accessing the system, submitting jobs, and adhering to best practices. You are encouraged to supplement this information with additional useful information (or removal of outdated information) as needed in the future.
 
